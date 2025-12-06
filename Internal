@@ -1,0 +1,18 @@
+
+
+## Setup BloodHound Mac Intel CPU
+curl -L https://github.com/SpecterOps/bloodhound-cli/releases/latest/download/bloodhound-cli-darwin-amd64.tar.gz -o bloodhound-cli.tar.gz
+tar -xzf bloodhound-cli.tar.gz
+./bloodhound-cli install
+./bloodhound-cli config get default_password
+
+
+
+------ Low-Priv Credentials -------
+
+nxc ldap -u username -p password -M pre2k
+(often no password set and can be changed to login)
+
+nxc ldap -u username -p password -M adcs
+
+nxc smb -u username -p passwd -M coerce_plus
