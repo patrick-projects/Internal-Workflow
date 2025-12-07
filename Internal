@@ -8,6 +8,11 @@ tar -xzf bloodhound-cli.tar.gz
 
 
 
+----- No Creds  ------
+
+$ rpcclient -U 'DOMAIN/USER%PASSWD2025!' 10.0.0.50
+
+
 ------ Low-Priv Credentials -------
 
 nxc ldap -u username -p password -M pre2k
