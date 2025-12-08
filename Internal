@@ -10,7 +10,13 @@ tar -xzf bloodhound-cli.tar.gz
 
 ----- No Creds  ------
 
-$ rpcclient -U 'DOMAIN/USER%PASSWD2025!' 10.0.0.50
+$ rpcclient -U 'DOMAIN/USER%PASSWD2025!' DC-IP
+
+└─$ rpcclient -U '' -N 10.0.0.50
+rpcclient $> getusername
+Account Name: ANONYMOUS LOGON, Authority Name: NT AUTHORITY
+querydominfo
+enumdomusers     (dumps all the usernames, to later spray against)
 
 
 ------ Low-Priv Credentials -------
