@@ -18,6 +18,10 @@ Account Name: ANONYMOUS LOGON, Authority Name: NT AUTHORITY
 querydominfo
 enumdomusers     (dumps all the usernames, to later spray against)
 
+** If you find password_expired.... 
+Run; chgpasswd <username> <oldpasswd> <newtemppasswd>
+
+
 
 
 
