@@ -9,7 +9,18 @@ tar -xzf bloodhound-cli.tar.gz
 
 ----------Inital Host Enumeration --------------
 
-nmap -sn -n -T4 -oG live_hosts.txt -iL scope.txt
+nmap -sn -n -T4 --min-rate 1000 -PS445,3389,80,443 -oG live_hosts_tcp.txt -iL scope.txt
+
+# (active) scan all private ranges (i.e. 192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8)
+netdiscover -i $INTERFACE
+
+# (active) scan a given range (e.g. 192.168.0.0/24)
+netdiscover -i $INTERFACE -r $RANGE
+
+NBT discovery
+It sends NetBIOS status query to each address in supplied range and lists received information in human readable form. For each responded host it lists IP address, NetBIOS computer name, logged-in user name and MAC address (such as Ethernet).
+
+nbtscan -r $RANGE
 
 
 ----- No Creds  ------
