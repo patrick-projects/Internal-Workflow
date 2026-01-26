@@ -9,7 +9,7 @@ tar -xzf bloodhound-cli.tar.gz
 
 ----------Inital Host Enumeration --------------
 
-nmap -sn -n -T4 --min-rate 1000 -PS445,3389,80,443 -oG live_hosts_tcp.txt -iL scope.txt
+nmap -sn -n -T4 --min-rate 1000 -PS445,3389,80,443 -oG live_hosts_tcp.txt -iL scope.txt... or just use masscan for fast decent results
 
 # (active) scan all private ranges (i.e. 192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8)
 netdiscover -i $INTERFACE
