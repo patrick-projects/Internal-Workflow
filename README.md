@@ -41,7 +41,7 @@ nmap --open -p 4786 -iL live_hosts.txt | grep "Nmap scan report for" | awk '{pri
 
 git clone https://github.com/Sab0tag3d/SIETpy3.git
 
-python3 SIETpy3/siet.py -l cisco-smart-install.txt -g
+python3 siet.py -l ../cisco-smart-install.txt -g 
 
 ------ Low-Priv Credentials -------
 
