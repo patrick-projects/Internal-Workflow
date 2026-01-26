@@ -7,6 +7,7 @@ tar -xzf bloodhound-cli.tar.gz
 ./bloodhound-cli config get default_password
 
 
+
 ----------Inital Host Enumeration --------------
 
 nmap -sn -n -T4 --min-rate 1000 -PS445,3389,80,443 -oG live_hosts_tcp.txt -iL scope.txt... or just use masscan for fast decent results
@@ -24,6 +25,10 @@ nbtscan -r $RANGE
 
 
 ----- No Creds  ------
+
+nano /etc/proxychains4.conf change to port 1080 at bottom
+nano /etc/responder/Responder.conf # HTTP off and SMB off
+
 
 $ rpcclient -U 'DOMAIN/USER%PASSWD2025!' DC-IP
 
