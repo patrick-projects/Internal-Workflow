@@ -7,6 +7,10 @@ tar -xzf bloodhound-cli.tar.gz
 ./bloodhound-cli config get default_password
 
 
+----------Inital Host Enumeration --------------
+
+nmap -sn -n -T4 -oG live_hosts.txt -iL scope.txt
+
 
 ----- No Creds  ------
 
