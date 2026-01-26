@@ -39,6 +39,9 @@ Run; chgpasswd <username> <oldpasswd> <newtemppasswd>
 # Check for Cisco Smart Intall
 nmap --open -p 4786 -iL live_hosts.txt | grep "Nmap scan report for" | awk '{print $5}'
 
+git clone https://github.com/Sab0tag3d/SIETpy3.git
+
+python3 SIETpy3/siet.py -l cisco-smart-install.txt -g
 
 ------ Low-Priv Credentials -------
 
