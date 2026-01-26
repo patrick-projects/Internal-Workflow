@@ -2,9 +2,8 @@ import os
 import sys
 import re
 
-# Cisco Type 7 Decryption Logic
+# --- Decryption Logic for Type 7 ---
 def decrypt_type7(encoded_password):
-    # The static Cisco lookup table
     xlat = [
         0x64, 0x73, 0x66, 0x64, 0x3b, 0x6b, 0x66, 0x6f,
         0x41, 0x2c, 0x2e, 0x69, 0x79, 0x65, 0x77, 0x72,
@@ -14,74 +13,109 @@ def decrypt_type7(encoded_password):
         0x39, 0x38, 0x37, 0x33, 0x32, 0x35, 0x34, 0x6b,
         0x3b, 0x66, 0x67, 0x38, 0x37, 0x00
     ]
-
     try:
-        # Validate input char set
-        if not re.match(r'^[0-9A-Fa-f]+$', encoded_password):
-            return "(Invalid Hex Characters)"
-
-        # First two digits are the salt/index
+        if not re.match(r'^[0-9A-Fa-f]+$', encoded_password): return None
         seed = int(encoded_password[:2])
         result = ""
-        
-        # Process the rest of the string in pairs of hex digits
         for i in range(2, len(encoded_password), 2):
             val = int(encoded_password[i:i+2], 16)
             result += chr(val ^ xlat[seed])
             seed = (seed + 1) % 53
-            
         return result
-    except Exception as e:
-        return f"(Error: {str(e)})"
+    except:
+        return None
+
+def analyze_line(filename, line_num, line):
+    findings = []
+    line = line.strip()
+    
+    # regex patterns for common creds
+    # 1. Type 7 (Reversible)
+    #    Matches: 'enable password 7 HASH' or 'username bob password 7 HASH'
+    match_7 = re.search(r'(?:username\s+(?P<user>\S+)\s+.*)?password 7\s+(?P<hash>[0-9A-Fa-f]+)', line, re.IGNORECASE)
+    
+    # 2. Type 5 (MD5) - Crack needed
+    #    Matches: 'enable secret 5 HASH' or 'username bob secret 5 HASH'
+    match_5 = re.search(r'(?:username\s+(?P<user>\S+)\s+.*)?secret 5\s+(?P<hash>\S+)', line, re.IGNORECASE)
+    
+    # 3. Type 8/9 (SHA/Scrypt) - Crack needed
+    match_9 = re.search(r'(?:username\s+(?P<user>\S+)\s+.*)?secret [89]\s+(?P<hash>\S+)', line, re.IGNORECASE)
+
+    # 4. Type 0 / Cleartext
+    #    Matches: 'password 0 PLAIN' or just 'password PLAIN' (if no 7/5/secret keyword)
+    match_0 = re.search(r'(?:username\s+(?P<user>\S+)\s+.*)?password 0\s+(?P<pass>\S+)', line, re.IGNORECASE)
+    
+    # 5. SNMP Community
+    match_snmp = re.search(r'snmp-server\s+community\s+(?P<comm>\S+)', line, re.IGNORECASE)
+
+    # --- Processing ---
+    
+    if match_7:
+        user = match_7.group('user') if match_7.group('user') else "Global/Enable"
+        p_hash = match_7.group('hash')
+        decrypted = decrypt_type7(p_hash)
+        findings.append({
+            "type": "Type 7 (Weak)",
+            "user": user,
+            "cred": p_hash[:15]+"...",
+            "value": f"\033[92m{decrypted}\033[0m" # Green Text
+        })
+
+    if match_5:
+        user = match_5.group('user') if match_5.group('user') else "Global/Enable"
+        findings.append({
+            "type": "Type 5 (MD5)",
+            "user": user,
+            "cred": match_5.group('hash')[:15]+"...",
+            "value": "\033[93m[Crack Needed]\033[0m" # Yellow Text
+        })
+
+    if match_9:
+        user = match_9.group('user') if match_9.group('user') else "Global/Enable"
+        findings.append({
+            "type": "Type 8/9 (Strong)",
+            "user": user,
+            "cred": match_9.group('hash')[:15]+"...",
+            "value": "\033[93m[Crack Needed]\033[0m"
+        })
+
+    if match_0:
+        user = match_0.group('user') if match_0.group('user') else "Global/Enable"
+        findings.append({
+            "type": "Cleartext!",
+            "user": user,
+            "cred": "N/A",
+            "value": f"\033[91m{match_0.group('pass')}\033[0m" # Red Text
+        })
+        
+    if match_snmp:
+        findings.append({
+            "type": "SNMP Community",
+            "user": "N/A",
+            "cred": "N/A",
+            "value": f"\033[91m{match_snmp.group('comm')}\033[0m" # Red Text
+        })
+
+    return findings
 
 def scan_directory(directory):
-    # Regex to find 'password 7' followed by the hash
-    # Captures things like: 'enable password 7 <hash>' or 'username bob password 7 <hash>'
-    pattern = re.compile(r'password 7\s+([0-9A-Fa-f]+)', re.IGNORECASE)
-
-    print(f"[*] Scanning directory: {directory}")
-    print(f"{'-'*80}")
-    print(f"{'FILENAME':<35} | {'HASH':<20} | {'DECRYPTED'}")
-    print(f"{'-'*80}")
-
-    found_count = 0
-
+    print(f"{'FILE':<25} | {'TYPE':<15} | {'USER':<15} | {'DECRYPTED / VALUE'}")
+    print("-" * 80)
+    
     for root, dirs, files in os.walk(directory):
         for file in files:
             filepath = os.path.join(root, file)
-            
             try:
-                # Open with 'ignore' errors to handle binary files or weird encodings without crashing
                 with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                    for line_num, line in enumerate(f, 1):
-                        match = pattern.search(line)
-                        if match:
-                            full_hash = match.group(1)
-                            # Cisco Type 7 hashes are usually even length. 
-                            # If odd, it's often a false positive or malformed, but we try anyway.
-                            if len(full_hash) % 2 != 0:
-                                continue
-
-                            plaintext = decrypt_type7(full_hash)
-                            
-                            # Clean up the output to make it readable
-                            display_name = os.path.basename(filepath)
-                            print(f"{display_name:<35} | {full_hash[:18]+'..':<20} | \033[92m{plaintext}\033[0m")
-                            found_count += 1
-            except Exception as e:
-                # Permission errors or really broken files
+                    for i, line in enumerate(f, 1):
+                        results = analyze_line(file, i, line)
+                        for r in results:
+                            print(f"{file[:25]:<25} | {r['type']:<15} | {r['user']:<15} | {r['value']}")
+            except:
                 pass
-
-    print(f"{'-'*80}")
-    print(f"[*] Scan complete. Found {found_count} credentials.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 cisco_decryptor.py <directory_path>")
-        sys.exit(1)
-    
-    target_dir = sys.argv[1]
-    if os.path.isdir(target_dir):
-        scan_directory(target_dir)
+        print("Usage: python3 cisco_audit.py <directory>")
     else:
-        print("Error: The provided path is not a directory.")
+        scan_directory(sys.argv[1])
