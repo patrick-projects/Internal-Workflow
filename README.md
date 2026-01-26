@@ -36,8 +36,8 @@ enumdomusers     (dumps all the usernames, to later spray against)
 ** If you find password_expired.... 
 Run; chgpasswd <username> <oldpasswd> <newtemppasswd>
 
-
-
+# Check for Cisco Smart Intall
+nmap --open -p 4786 -iL live_hosts.txt | grep "Nmap scan report for" | awk '{print $5}'
 
 
 ------ Low-Priv Credentials -------
