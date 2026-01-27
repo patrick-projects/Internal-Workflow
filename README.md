@@ -12,10 +12,10 @@ tar -xzf bloodhound-cli.tar.gz
 
 nmap -sn -n -T4 --min-rate 1000 -PS445,3389,80,443 -oG live_hosts_tcp.txt -iL scope.txt... or just use masscan for fast decent results
 
-# (active) scan all private ranges (i.e. 192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8)
+--- (active) scan all private ranges (i.e. 192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8) 
 netdiscover -i $INTERFACE
 
-# (active) scan a given range (e.g. 192.168.0.0/24)
+--- (active) scan a given range (e.g. 192.168.0.0/24)
 netdiscover -i $INTERFACE -r $RANGE
 
 NBT discovery
@@ -28,6 +28,9 @@ nbtscan -r $RANGE
 
 nano /etc/proxychains4.conf change to port 1080 at bottom
 nano /etc/responder/Responder.conf # HTTP off and SMB off
+
+certipy-ad find -u user@domain.loc -p 'passwd' -dc-ip 192.168.0.1 -vulnerable  (for ESC8 do -all instead of -vulnerable)
+certipy-ad 
 
 
 $ rpcclient -U 'DOMAIN/USER%PASSWD2025!' DC-IP
@@ -43,7 +46,7 @@ Run; chgpasswd <username> <oldpasswd> <newtemppasswd>
 
  nuclei -list live_hosts_port80.txt -list live_hosts_port443.txt -es info -es low 
 
-# Check for Cisco Smart Intall
+-- Check for Cisco Smart Intall
 nmap --open -p 4786 -iL live_hosts.txt | grep "Nmap scan report for" | awk '{print $5}'
 
 git clone https://github.com/Sab0tag3d/SIETpy3.git
